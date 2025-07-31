@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postfix-relay
+  namespace: wazuh
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postfix-relay
+  template:
+    metadata:
+      labels:
+        app: postfix-relay
+    spec:
+      containers:
+      - name: postfix
+        image: juanluisbaptiste/postfix:latest
+        ports:
+        - containerPort: 25
+        env:
+        - name: SMTP_SERVER
+          value: "smtp.gmail.com"
+        - name: SMTP_PORT
+          value: "587"
+        - name: SMTP_USERNAME
+          value: "<your-gmail>"
+        - name: SMTP_PASSWORD
+          value: "<app-password>"
+        - name: SERVER_HOSTNAME
+          value: "wazuh-alerts.local"
+
+---
+# Create service for Wazuh communication
+apiVersion: v1
+kind: Service
+metadata:
+  name: postfix-relay
+  namespace: wazuh
+spec:
+  selector:
+    app: postfix-relay
+  ports:
+  - port: 25
+    targetPort: 25
+  type: ClusterIP
+
